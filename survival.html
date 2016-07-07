@@ -1,0 +1,177 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<script src="jquery.min.js"></script>
+		<style>
+			* {
+				background-color: black;
+			}
+			#timer {
+				font-style = "Helvetica";
+				font-size = "20px";
+				color: white;
+				position: absolute;
+				z-index: 3;
+				top: 25px;
+				left: 25px;
+				transition: 1000ms;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+		<div id="timer"></div>
+		<script src="randomColor.js"></script>
+		<script>
+var canvas = document.getElementById("canvas");
+ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+keysPressed = {37: false, 38: false, 39: false, 40: false};
+
+centerX = canvas.width/2 - 20/2;
+centerY = canvas.height/2 - 20/2;
+circles = [];
+
+player = {x: centerX, y: canvas.height-100, color: "red", radius: 15};
+var stop = false;
+var startTime = new Date();
+function Circle(){
+	this.getVelVars = function(){
+		this.velX = 3-Math.random()*6;
+		this.velY = 3-Math.random()*6;
+//		this.velY = (Math.random() < 0.5 ? -1 : 1) * Math.sqrt(1-(this.velX*this.velX));
+	}
+	this.getVelVars();
+//	this.velX = velX;
+//	this.velY = velY;
+	this.x = centerX;
+	this.y = centerY;
+	this.radius = 10;
+	randColVar = 2;
+	if(randColVar < 0.33){
+		this.color = randomColor({hue: 'red'});
+	}else if(randColVar < 0.66){
+		this.color = randomColor({hue: 'orange'});
+	}else{
+//		this.color = randomColor({hue: 'yellow'});
+		this.color = randomColor({luminosity: 'light'});
+	}	
+	this.move = function(){
+		this.x+=this.velX;
+		this.y+=this.velY;
+		if(this.x < -this.radius*2){
+			this.x = centerX;
+			this.y = centerY;
+			this.getVelVars();
+//			this.velX = 3-Math.random()*6;
+//                        this.velY = 3-Math.random()*6;
+		}
+		else if(this.x > canvas.width + this.radius*2){
+			this.x = centerX;
+			this.y = centerY;
+			this.getVelVars();
+//			this.velX = 3-Math.random()*6;
+//                        this.velY = 3-Math.random()*6;
+		}
+		if(this.y < -this.radius*2){
+			this.x = centerX;
+			this.y = centerY;
+			this.getVelVars();
+//			this.velX = 3-Math.random()*6;
+//                        this.velY = 3-Math.random()*6;
+		}
+		else if(this.y > canvas.height+ this.radius*2){
+			this.x = centerX;
+			this.y = centerY;
+			this.getVelVars();
+//			this.velX = 3-Math.random()*6;
+//			this.velY = 3-Math.random()*6; 
+		}
+	}
+	this.checkCollision = function(){
+		if (Math.sqrt(Math.pow(player.x - this.x, 2) + Math.pow(player.y - this.y, 2)) < (this.radius+player.radius)){
+			stop = true;
+		}
+	}
+}
+
+counter = 0;
+for(var i = 0; i < 100; i++){
+	circles.push(new Circle());
+}
+function update(){
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	document.getElementById("timer").innerHTML = (new Date()-startTime)/1000;
+	if(stop){
+		t = document.getElementById("timer");
+		t.style.left = (canvas.width/2-19)+"px";
+		t.style.top = (canvas.height/2-7)+"px";
+		t.style.fontSize = "50px";
+		return;
+	}
+	if(circles.length < 500){
+		if(counter == 2){
+			counter = 0;
+			circles.push(new Circle());
+		}
+	}
+	counter++;
+	for(var c = 0; c < circles.length; c++){
+		circles[c].move();
+		circles[c].checkCollision();
+		updateCircle(circles[c]);
+	}
+	if(keysPressed[37]){
+		player.x-=4;
+	}
+	if(keysPressed[38]){
+		player.y-=4;
+	}
+	if(keysPressed[39]){
+		player.x+=4;
+	}
+	if(keysPressed[40]){
+		player.y+=4;
+	}
+	if(player.x-player.radius < 0){
+		player.x = player.radius;
+	}
+	if(player.y-player.radius < 0){
+		player.y = player.radius;
+	}
+	if(player.y+player.radius*2 > canvas.height){
+		player.y = canvas.height-player.radius*2;
+	}
+	if(player.x+player.radius*2 > canvas.width){
+		player.x = canvas.width-player.radius*2;
+	}
+	updateCircle(player);
+	setTimeout(update, 15);
+}
+
+function updateCircle(circle){
+	ctx.fillStyle = circle.color;
+        ctx.beginPath();
+        ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+        ctx.fill();
+}
+
+$(document).on("keydown", function(e){
+	keysPressed[e.keyCode] = true;
+});
+$(document).on("keyup", function(e){
+	keysPressed[e.keyCode] = false;
+});
+
+window.addEventListener("keydown", function(e) {
+    // space and arrow keys
+    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+    }
+}, false);
+update();
+	
+		</script>
+	</body>
+</html

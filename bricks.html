@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html>
+        <head>
+                <script src="https://code.jquery.com/jquery-2.2.3.js"></script>
+                <title>Dave</title>
+                <style>
+* {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+}
+canvas {
+        display: block;
+}
+                </style>
+        </head>
+        <body>
+                <canvas id="mycanvas"></canvas>
+                <script>
+var canvas = document.getElementById("mycanvas");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var ctx = canvas.getContext('2d');
+var keysPressed = {37: false, 39: false};
+var player = {x: canvas.width/2 - 115/2, y: canvas.height - 50, height: 20, width: 115, color: "rgb(0, 0, 255)"};
+var mode = prompt("Enter the mode (easy, medium, hard): ");
+var ballVelX = 3;
+var ballVelY = 3;
+if(mode == "easy"){
+	var ballVelX = 2.5;
+	var ballVelY = 2.5;
+} else if(mode == "medium"){
+	ballVelX = 2.8;
+	ballVelY = 2.8;
+} else {
+	ballVelX = 3.1;
+	ballVelY = 3.1;
+}
+var ball = {x: canvas.width/2 - 16/2, y: 3*canvas.height/5, radius: 16, color: "rgb(255, 0, 0)", velX: ballVelX, velY: ballVelY};
+var bricks = [];
+var rowBricks = 8;
+var columnBricks = 4;
+var brickWidth = canvas.width/rowBricks;
+var brickHeight = 15;
+for(var x = 0; x < rowBricks; x++){
+       for(var y = 0; y < columnBricks; y++){
+               bricks.push({x:x*brickWidth, y:y*brickHeight, height: brickHeight, width: brickWidth, color: getRandomColor()});
+       }
+}
+//var tiles = [];
+/*for(var x = 0; x < rowTiles; x++){
+       for(var y = 0; y < columnTiles; y++){
+               tiles.push({x: (x*100)+((x+1)*10), y: (y*15)+((y+1)*5), height: 15, width: 100, color: getRandomColor()});
+               //updatePlayer({x: (x*100)+((x+1)*10), y: (y*15)+((y+1)*5), height: 15, width: 100, color: getRandomColor()});
+       }
+}*/
+ 
+function update(){
+       ctx.clearRect(0, 0, canvas.width, canvas.height);
+       if(keysPressed[37]){ //left key pressed
+               if(player.x >= 3){
+                        player.x-=3;
+                }
+        }
+        if(keysPressed[39]){ //right key pressed
+                if(player.x + player.width <= canvas.width-3){
+                       player.x+=3;
+               }
+       }
+       for(var b = 0; b < bricks.length; b++){
+               updatePlayer(bricks[b]);
+               if(isColliding(ball, bricks[b])){
+                       bricks.splice(b, 1);
+			if (bricks.length === 0) {
+				alert("You won");
+			}
+                       ball.velY*=-1;
+               }
+       }
+       if(isColliding(ball, player)){
+               ball.velY*=-1;
+       }
+       if(ball.x+ball.radius/2 >= canvas.width || ball.x-ball.radius/2 <= 0){
+               ball.velX*=-1;
+       }
+       if(ball.y+ball.radius/2 >= canvas.height){
+                return;
+        }
+        if(ball.y-ball.radius/2 <= 0){
+               ball.velY*=-1;
+       }
+       ball.x+=ball.velX;
+       ball.y+=ball.velY;
+       updateBall(ball);
+       updatePlayer(player);
+       setTimeout(update, 10);
+}
+function updatePlayer(player){
+       ctx.fillStyle = player.color;
+       ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+function isColliding(ball, tile){
+       if(ball.x+ball.radius/2 >= tile.x && ball.x-ball.radius/2 <= tile.x+tile.width){
+               if(ball.y+ball.radius/2 >= tile.y && ball.y-ball.radius/2 <= tile.y+tile.height){
+                       return true;
+                }
+        }
+        return false;
+}
+function updateBall(ball){
+        ctx.fillStyle = ball.color;
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, 2*Math.PI, true);
+        ctx.closePath();
+        ctx.fill();
+}
+function getRandomColor(){
+        r = getRandomInt(0, 255);
+        g = getRandomInt(0, 255);
+        b = getRandomInt(0, 255);
+        return "rgb("+r+", "+g+", "+b+")";
+}
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+$(document).on("keydown", function(e){
+        console.log(e.keyCode);
+        if(e.keyCode == 37 || e.keyCode == 39){
+                keysPressed[e.keyCode] = true;
+        }
+});
+$(document).on("keyup", function(e){
+        console.log(e.keyCode);
+        if(e.keyCode == 37 || e.keyCode == 39){
+                keysPressed[e.keyCode] = false;
+        }
+});
+update();
+ 
+ 
+                </script>
+        </body>
+<html>
